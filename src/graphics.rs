@@ -4,7 +4,7 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, cursor, terminal_size};
 
-mod highlights {
+pub mod colors {
     pub const FG_YELLOW: termion::color::Fg<termion::color::Rgb> =
         termion::color::Fg(termion::color::Rgb(181, 159, 59));
     pub const FG_WHITE: termion::color::Fg<termion::color::Rgb> =
@@ -28,7 +28,7 @@ mod highlights {
         termion::color::Bg(termion::color::Rgb(58, 58, 60));
 }
 
-mod graphics {
+pub mod graphics {
     pub const BOX_TOP: &str = "┏━━━━━━━┓";
     pub const BOX_FILL: &str = "       ";
     pub const BOX_HALF_FILL: &str = "    ";
@@ -37,7 +37,7 @@ mod graphics {
 }
 
 use graphics::*;
-use highlights::*;
+use colors::*;
 
 pub fn draw_box(
     ch: char,
