@@ -14,7 +14,8 @@
 // use termion::{color, cursor, terminal_size};
 
 use std::io::{stdin, stdout, Write};
-use termion::raw::{IntoRawMode, RawTerminal};
+use termion::{raw::IntoRawMode, input::TermRead};
+use termion::event::Key;
 use termion::cursor;
 
 use crate::game::{Wordle, Letter, Character};
@@ -40,15 +41,41 @@ fn main() {
     std_out.flush().unwrap();
 
     let mut wordle_game = Wordle::initialize();
-    for i in 0..=4 {
-        let letter = Letter { ascii: (62+i as u8) as char, state: Character::Near };
-        wordle_game.update_guess(letter);
+    for c in stdin.keys() {
+        match c.unwrap() {
+            // Exit.
+            Key::Esc => {
+                write!(
+                    std_out,
+                    "{}{}{}",
+                    cursor::Goto(1, 1),
+                    termion::clear::All,
+                    cursor::Restore,
+                )
+                .unwrap();
+                break;
+            }
+            Key::Backspace => {
+                continue;
+            }
+            Key::Char('\n') => {
+                match wordle_game.validate_guess() {
+                    true => print!("VALID GUESS"),
+                    false => print!("INVALID GUESS"),
+                }
+            }
+            Key::Char(c) => {
+                if c.is_ascii_alphabetic() {
+                    let letter = Letter { ascii: c, state: Character::None };
+                    wordle_game.update_guess(letter);
+                }
+            }
+            Key::Delete => {
+                continue;
+            }
+            _ => (),
+        }
     }
-    match wordle_game.validate_guess() {
-        true => print!("VALID"),
-        false => print!("INVALID"),
-    };
-
 }
 
 // fn main() {

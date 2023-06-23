@@ -1,7 +1,7 @@
 use rand::Rng;
 use std::fs::read_to_string;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Wordle {
     answer: String,
     guesses: Vec<String>,
@@ -11,14 +11,17 @@ pub struct Wordle {
     dictionary: Vec<String>,
 }
 
-#[derive(Debug)]
+impl Copy for Wordle {}
+
+#[derive(Debug, Clone, Copy)]
 pub enum Character {
     Wrong,
     Exact,
     Near,
+    None,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Letter {
     pub ascii: char,
     pub state: Character,
@@ -80,7 +83,7 @@ impl Wordle {
         self.guess_letters.push(letter);
     }
 
-    pub fn validate_guess(mut self) -> bool {
+    pub fn validate_guess(&mut self) -> bool {
         let guess: String = self
             .guess_letters
             .into_iter()
@@ -103,11 +106,9 @@ impl Wordle {
         for (index, mut letter) in self.guess_letters.iter_mut().enumerate() {
             if answer_chars[index] == letter.ascii {
                 letter.state = Character::Exact;
-            }
-            else if !self.answer.contains(letter.ascii) {
+            } else if !self.answer.contains(letter.ascii) {
                 letter.state = Character::Wrong;
-            }
-            else {
+            } else {
                 for (n, ch) in answer_chars.iter().enumerate() {
                     let ascii_val = letter.ascii as usize;
                     if ch == &letter.ascii && used[n] != ascii_val {
@@ -120,6 +121,8 @@ impl Wordle {
             }
         }
     }
+    // Write a public function that returns the value of guess_string.
+    
 }
 
 // TODO: (enter) Function that compares guess to answer
