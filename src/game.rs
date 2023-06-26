@@ -11,8 +11,6 @@ pub struct Wordle {
     dictionary: Vec<String>,
 }
 
-impl Copy for Wordle {}
-
 #[derive(Debug, Clone, Copy)]
 pub enum Character {
     Wrong,
@@ -25,6 +23,7 @@ pub enum Character {
 pub struct Letter {
     pub ascii: char,
     pub state: Character,
+    pub first_blank: bool,
 }
 impl Letter {
     fn to_string(&self) -> String {
@@ -77,19 +76,35 @@ impl Wordle {
 
     // Removes last character from word list
     pub fn update_guess(&mut self, letter: Letter) {
-        if self.guess_letters.len() == 5 {
-            return;
+        if self.guess_letters.len() != 5 {
+            self.guess_letters.push(letter);
         }
-        self.guess_letters.push(letter);
+    }
+
+    pub fn get_guess_letters(&self) -> Vec<Letter> {
+        let mut letters_vec = self.guess_letters.clone();
+        if letters_vec.len() < 5 {
+            let mut empty_letter = Letter {
+                ascii: ' ',
+                state: Character::None,
+                first_blank: true,
+            };
+            letters_vec.push(empty_letter);
+            empty_letter.first_blank = false;
+            for _ in self.guess_letters.len()..5 {
+                letters_vec.push(empty_letter);
+            }
+        }
+        letters_vec
     }
 
     pub fn validate_guess(&mut self) -> bool {
         let guess: String = self
             .guess_letters
-            .into_iter()
+            .clone().into_iter()
             .map(|letter| letter.to_string().to_uppercase())
             .collect();
-        if self.dictionary.contains(&guess) {
+        if self.dictionary.contains(&guess.to_lowercase()) {
             self.guess_string = guess;
             return true;
         }
@@ -122,7 +137,6 @@ impl Wordle {
         }
     }
     // Write a public function that returns the value of guess_string.
-    
 }
 
 // TODO: (enter) Function that compares guess to answer

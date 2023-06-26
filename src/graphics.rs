@@ -4,6 +4,8 @@ use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::{color, cursor, terminal_size};
 
+use crate::game;
+
 pub mod colors {
     pub const FG_YELLOW: termion::color::Fg<termion::color::Rgb> =
         termion::color::Fg(termion::color::Rgb(181, 159, 59));
@@ -120,13 +122,15 @@ pub fn draw_box(
     .unwrap();
 }
 
-pub fn draw_row(std_out: &mut RawTerminal<std::io::Stdout>, start_x: u16) {
-    for row in (1..=26).step_by(5) {
-        for col in (0..=36).step_by(9) {
-            draw_box(' ', std_out, (start_x + col, row), FG_GREY, BG_BLACK);
-        }
-    }
-}
+
+// pub fn draw_row(std_out: &mut RawTerminal<std::io::Stdout>, start_x: u16) {
+//     for row in (1..=26).step_by(5) {
+//         for col in (0..=36).step_by(9) {
+//             draw_box(' ', std_out, (start_x + col, row), FG_GREY, BG_BLACK);
+//         }
+//     }
+// }
+
 
 pub fn display_starting_board(std_out: &mut RawTerminal<std::io::Stdout>, start_x: u16) {
     for row in (1..=26).step_by(5) {
@@ -135,6 +139,24 @@ pub fn display_starting_board(std_out: &mut RawTerminal<std::io::Stdout>, start_
         }
     }
 }
+
+pub fn draw_row(std_out: &mut RawTerminal<std::io::Stdout>, col_start: u16, row: u16, updated_letters: Vec<game::Letter>) {
+    for (index, letter) in updated_letters.iter().enumerate() {
+        let fg_color = match letter.first_blank {
+            true => FG_WHITE,
+            false => FG_GREY,
+        };
+        let bg_color = match letter.state {
+            game::Character::Wrong => BG_BLACK,
+            game::Character::Exact => BG_GREY,
+            game::Character::Near => BG_YELLOW,
+            game::Character::None => BG_BLACK,
+        };
+        draw_box(letter.ascii, std_out, (col_start + (index * 9) as u16, row), fg_color, bg_color);
+    }
+}
+
+
 
 // TODO: Async function to update middle val & fill terminal background on resize
 

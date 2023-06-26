@@ -14,7 +14,7 @@
 // use termion::{color, cursor, terminal_size};
 
 use std::io::{stdin, stdout, Write};
-use termion::{raw::IntoRawMode, input::TermRead};
+use termion::{raw::IntoRawMode, input::TermRead, terminal_size};
 use termion::event::Key;
 use termion::cursor;
 
@@ -23,6 +23,9 @@ use crate::graphics::colors;
 
 mod graphics;
 mod game;
+
+// Write a function that takes a 
+
 
 fn main() {
     let stdin = stdin();
@@ -37,8 +40,13 @@ fn main() {
     )
     .unwrap();
 
-    write!(std_out, "{}{}", colors::BG_GREY, termion::clear::All).unwrap();
+    write!(std_out, "{}{}", colors::BG_BLACK, termion::clear::All).unwrap();
     std_out.flush().unwrap();
+
+
+    let (terminal_width, _) = terminal_size().unwrap();
+    let col_start = ((terminal_width / 2) as f32) as u16 - 22;
+    let row = 1;
 
     let mut wordle_game = Wordle::initialize();
     for c in stdin.keys() {
@@ -56,18 +64,26 @@ fn main() {
                 break;
             }
             Key::Backspace => {
-                continue;
+                wordle_game.delete_last_char();
+                let updated_letters = wordle_game.get_guess_letters();
+                graphics::draw_row(&mut std_out, col_start, row, updated_letters)
             }
             Key::Char('\n') => {
                 match wordle_game.validate_guess() {
-                    true => print!("VALID GUESS"),
+                    true => {
+                        wordle_game.submit_guess();
+                        let updated_letters = wordle_game.get_guess_letters();
+                        graphics::draw_row(&mut std_out, col_start, row, updated_letters)
+                    },
                     false => print!("INVALID GUESS"),
                 }
             }
             Key::Char(c) => {
                 if c.is_ascii_alphabetic() {
-                    let letter = Letter { ascii: c, state: Character::None };
+                    let letter = Letter { ascii: c, state: Character::None, first_blank: false };
                     wordle_game.update_guess(letter);
+                    let updated_letters = wordle_game.get_guess_letters();
+                    graphics::draw_row(&mut std_out, col_start, row, updated_letters)
                 }
             }
             Key::Delete => {
